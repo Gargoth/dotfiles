@@ -1,7 +1,7 @@
 function config
     if test $argv
-        cd ~/repos/monoconfig/$argv
+        cd ~/repos/dotfiles/$argv
     else
-        cd ~/repos/monoconfig
+        cd ~/repos/dotfiles
     end
 end
