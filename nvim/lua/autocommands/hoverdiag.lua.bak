@@ -1,0 +1,31 @@
+-- Creates autocommand for showing line diagnostics automatically in hover window
+local create_hoverdiag_au = function()
+    vim.api.nvim_create_autocmd({ 'cursorhold' }, {
+        group = vim.api.nvim_create_augroup('float_diagnostic', { clear = true }),
+        callback = function()
+            vim.diagnostic.open_float(nil, { focus = false }) -- Same as `<leader>cq` above
+        end,
+    })
+end
+
+-- State that handles toggling of diagnostics
+local diagnostics_active = true
+
+-- Enable create_hoverdiag_au by default
+create_hoverdiag_au()
+
+-- Inverts `diagnostics_active` and handles hover diagnostics autocommand
+local toggle_diagnostics = function()
+    diagnostics_active = not diagnostics_active
+    if diagnostics_active then
+        vim.diagnostic.show()
+        create_hoverdiag_au()
+    else
+        vim.diagnostic.hide()
+        vim.api.nvim_del_augroup_by_name('float_diagnostic')
+    end
+    print('Toggled diagnostics to', diagnostics_active)
+end
+
+-- Set keybind to toggle diagnostic hover window
+vim.keymap.set('n', '<leader>ud', toggle_diagnostics, { desc = 'Toggle [D]iagnostic hover window autocmd' })

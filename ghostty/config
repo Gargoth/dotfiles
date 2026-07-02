@@ -1,0 +1,7 @@
+font-family = Jetbrains Mono
+freetype-load-flags = no-hinting
+
+clipboard-read = allow
+clipboard-write = allow
+
+config-file = ?theme-current

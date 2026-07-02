@@ -1,0 +1,5 @@
+require('lsp').add 'actionlint'
+
+vim.lsp.config('actionlint', {})
+
+vim.lsp.enable 'actionlint'

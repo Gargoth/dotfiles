@@ -1,0 +1,5 @@
+require('lsp').add 'sqlls'
+
+vim.lsp.config('sqlls', {})
+
+vim.lsp.enable 'sqlls'
