@@ -1,0 +1,43 @@
+name: dev-env
+description: Quick LXD developer environment setup
+config:
+  security.nesting: "true" # Prevents systemd core services startup failure loop
+  user.user-data: |
+    #cloud-config
+    package_update: true
+    package_upgrade: true
+    packages:
+      - atuin
+      - eza
+      - fastfetch
+      - fd-find
+      - fish
+      - fzf
+      - g++
+      - git
+      - git-delta
+      - make
+      - ripgrep
+      - tealdeer
+      - tmux
+      - poppler-utils
+      - python3-venv
+      - curl
+      - unzip
+      - squashfuse # For Snap apparently
+      - fuse # Also for Snap apparently
+    snap:
+      commands:
+        - snap install nvim --classic
+        - snap install node --classic
+        - snap install go --classic
+        - snap install yazi --classic
+        - snap install gh --classic
+    users:
+      - default
+      - name: ubuntu
+        shell: /usr/bin/fish
+    runcmd:
+      - sudo -i -u ubuntu mkdir -p /home/ubuntu/.local/bin
+      - sudo -i -u ubuntu bash -c 'grep -q "\.local/bin" ~/.bashrc || echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> ~/.bashrc'
+      - sudo -i -u ubuntu fish -c "fish_add_path ~/.local/bin"
