@@ -5,8 +5,6 @@ config:
     #cloud-config
     package_update: true
     package_upgrade: true
-    apt:
-      proxy: http://10.79.3.1:3142 # Remove if sharing since this is apt-proxy specific
     packages:
       - atuin
       - eza
@@ -25,9 +23,9 @@ config:
       - python3-venv
       - curl
       - unzip
+      - luarocks  # For norg plugins
     snap:
       commands:
-        - snap install nvim --classic
         - snap install node --classic
         - snap install go --classic
         - snap install yazi --classic
@@ -35,8 +33,12 @@ config:
     users:
       - default
       - name: ubuntu
-        shell: /usr/bin/fish
     runcmd:
+      - sudo -i -u ubuntu chsh -s $(which fish)
       - sudo -i -u ubuntu mkdir -p /home/ubuntu/.local/bin
-      - sudo -i -u ubuntu bash -c 'grep -q "\.local/bin" ~/.bashrc || echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> ~/.bashrc'
+      - sudo -i -u ubuntu mkdir repos
+      - sudo -i -u ubuntu git clone https://github.com/Gargoth/dotfiles.git ~/repos/dotfiles
+      - sudo -i -u ubuntu yes | python3 ~/repos/dotfiles/create_config_symlinks.py
       - sudo -i -u ubuntu fish -c "fish_add_path ~/.local/bin"
+      - sudo -i -u ubuntu fish -c "curl -fsSL https://raw.githubusercontent.com/MordechaiHadad/bob/master/scripts/install.sh | bash"
+      - sudo -i -u ubuntu fish -c "yes | bob install v0.12.3 && yes | bob use v0.12.3 && fish_add_path ~/.local/share/bob/nvim-bin/"
