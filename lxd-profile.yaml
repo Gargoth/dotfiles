@@ -1,11 +1,12 @@
 name: dev-env
 description: Quick LXD developer environment setup
 config:
-  security.nesting: "true" # Prevents systemd core services startup failure loop
   user.user-data: |
     #cloud-config
     package_update: true
     package_upgrade: true
+    apt:
+      proxy: http://10.79.3.1:3142 # Remove if sharing since this is apt-proxy specific
     packages:
       - atuin
       - eza
@@ -24,8 +25,6 @@ config:
       - python3-venv
       - curl
       - unzip
-      - squashfuse # For Snap apparently
-      - fuse # Also for Snap apparently
     snap:
       commands:
         - snap install nvim --classic
