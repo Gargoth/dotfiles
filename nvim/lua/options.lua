@@ -53,6 +53,6 @@ vim.opt.linebreak = false
 vim.opt.hlsearch = true
 
 -- Default conceal
-vim.o.conceallevel = 2
+vim.o.conceallevel = 0
 
 vim.o.foldlevel = 99
