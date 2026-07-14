@@ -29,3 +29,8 @@ abbr --add tm 'tmux'
 abbr --add tma 'tmux a'
 abbr --add tmks 'tmux kill-server'
 abbr --add tms 'tmux list-sessions'
+
+# multipass
+if type -q multipass
+    abbr --add mp 'multipass'
+end
