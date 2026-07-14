@@ -38,8 +38,7 @@ vim.keymap.set('n', '<M-l>', ':vertical resize +2<CR>', { silent = true })
 -- [[ LSP Keymapping ]]
 vim.keymap.set('n', '<leader>LI', ':checkhealth vim.lsp<CR>', { desc = '[L]sp [I]nfo' })
 vim.keymap.set('n', '<leader>LR', ':lsp restart<CR>', { desc = '[L]sp [R]estart' })
-vim.keymap.set('n', '<leader>LS', ':lsp start<CR>', { desc = '[L]sp [S]tart' })
-vim.keymap.set('n', '<leader>Ls', ':lsp stop<CR>', { desc = '[L]sp [S]top' })
+vim.keymap.set('n', '<leader>LS', ':lsp stop<CR>', { desc = '[L]sp [S]top' })
 vim.keymap.set('n', '<leader>LL', ':lua vim.cmd.edit(vim.lsp.get_log_path())<CR>', { desc = '[L]sp [L]og' })
 
 -- [[ UI ]]
