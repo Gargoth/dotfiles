@@ -1,0 +1,41 @@
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+packages:
+  - atuin
+  - eza
+  - fastfetch
+  - fd-find
+  - fish
+  - fzf
+  - g++
+  - git
+  - git-delta
+  - make
+  - ripgrep
+  - tealdeer
+  - tmux
+  - poppler-utils
+  - python3-venv
+  - curl
+  - unzip
+  - luarocks  # For norg plugins
+snap:
+  commands:
+    - snap install node --classic
+    - snap install go --classic
+    - snap install yazi --classic
+    - snap install gh --classic
+users:
+  - default
+  - name: gargoth
+runcmd:
+  - sudo -i -u gargoth chsh -s $(which fish) gargoth # Change shell to fish
+  - sudo -i -u gargoth mkdir -p /home/gargoth/.local/bin
+  - sudo -i -u gargoth fish -c "fish_add_path ~/.local/bin"
+  - sudo -i -u gargoth mkdir repos
+  - sudo -i -u gargoth git clone https://github.com/Gargoth/dotfiles.git ~/repos/dotfiles
+  - sudo -i -u gargoth yes | python3 ~/repos/dotfiles/create_config_symlinks.py --all
+  - sudo -i -u gargoth fish -c "curl -fsSL https://raw.githubusercontent.com/MordechaiHadad/bob/master/scripts/install.sh | bash"
+  - sudo -i -u gargoth fish -c "yes | bob install v0.12.3 && yes | bob use v0.12.3 && fish_add_path ~/.local/share/bob/nvim-bin/"
