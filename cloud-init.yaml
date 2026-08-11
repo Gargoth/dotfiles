@@ -29,13 +29,13 @@ snap:
     - snap install gh --classic
 users:
   - default
-  - name: gargoth
+  - name: ubuntu
 runcmd:
-  - sudo -i -u gargoth chsh -s $(which fish) gargoth # Change shell to fish
-  - sudo -i -u gargoth mkdir -p /home/gargoth/.local/bin
-  - sudo -i -u gargoth fish -c "fish_add_path ~/.local/bin"
-  - sudo -i -u gargoth mkdir repos
-  - sudo -i -u gargoth git clone https://github.com/Gargoth/dotfiles.git ~/repos/dotfiles
-  - sudo -i -u gargoth yes | python3 ~/repos/dotfiles/create_config_symlinks.py --all
-  - sudo -i -u gargoth fish -c "curl -fsSL https://raw.githubusercontent.com/MordechaiHadad/bob/master/scripts/install.sh | bash"
-  - sudo -i -u gargoth fish -c "yes | bob install v0.12.3 && yes | bob use v0.12.3 && fish_add_path ~/.local/share/bob/nvim-bin/"
+  - sudo -i -u ubuntu chsh -s $(which fish) ubuntu # Change shell to fish
+  - sudo -i -u ubuntu mkdir -p /home/ubuntu/.local/bin
+  - sudo -i -u ubuntu fish -c "fish_add_path ~/.local/bin"
+  - sudo -i -u ubuntu mkdir repos
+  - sudo -i -u ubuntu git clone https://github.com/Gargoth/dotfiles.git ~/repos/dotfiles
+  - sudo -i -u ubuntu yes | python3 ~/repos/dotfiles/create_config_symlinks.py --all
+  - sudo -i -u ubuntu fish -c "curl -fsSL https://raw.githubusercontent.com/MordechaiHadad/bob/master/scripts/install.sh | bash"
+  - sudo -i -u ubuntu fish -c "yes | bob install v0.12.3 && yes | bob use v0.12.3 && fish_add_path ~/.local/share/bob/nvim-bin/"
