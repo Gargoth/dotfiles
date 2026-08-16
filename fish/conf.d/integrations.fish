@@ -64,3 +64,8 @@ end
 if type -q lxc
     lxc completion fish | source
 end
+
+# Temporal
+if type -q temporal
+    temporal completion fish | source
+end
