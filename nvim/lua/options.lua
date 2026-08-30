@@ -57,3 +57,6 @@ vim.o.conceallevel = 0
 
 -- Prevent auto-folding
 vim.o.foldlevel = 99
+
+-- Enable project-specific config through exrc
+vim.o.exrc = true
