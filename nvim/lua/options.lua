@@ -55,4 +55,5 @@ vim.opt.hlsearch = true
 -- Default conceal
 vim.o.conceallevel = 0
 
+-- Prevent auto-folding
 vim.o.foldlevel = 99
