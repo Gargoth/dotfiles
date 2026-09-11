@@ -47,6 +47,7 @@ end
 # mise
 if type -q mise
     mise completion fish | source
+    mise activate fish | source
 end
 
 # Distrobox (Bazzite)
