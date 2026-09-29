@@ -1,0 +1,13 @@
+{
+  "Markdown Dropdown": {
+    "prefix": "dropdown",
+    "description": "GitHub Markdown dropdown using details and summary",
+    "body": [
+      "<details>",
+      "<summary>${1:Example}</summary>",
+      "",
+      "${2:This is a dropdown with text!}",
+      "</details>"
+    ]
+  }
+}
