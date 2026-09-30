@@ -1,8 +1,4 @@
-local tools = vim.tbl_map(function(server)
-    return { server.name, version = server.version }
-end, require('lsp.servers'))
-
-vim.list_extend(tools, {
+local tools = {
     { 'biome', version = '2.5.14' },
     { 'blade-formatter', version = '1.44.4' },
     { 'black', version = '26.5.1' },
@@ -13,7 +9,7 @@ vim.list_extend(tools, {
     { 'ruff', version = '0.15.22' },
     { 'stylua', version = 'v2.5.2' },
     { 'tree-sitter-cli', version = 'v0.26.11' },
-})
+}
 
 return {
     'WhoIsSethDaniel/mason-tool-installer.nvim',

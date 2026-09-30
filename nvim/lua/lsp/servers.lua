@@ -11,6 +11,5 @@ return {
     { name = 'tailwindcss', version = '0.16.0' },
     { name = 'tombi', version = 'v1.4.0' },
     { name = 'ty', version = '0.0.84' },
-    { name = 'vue_ls', version = '3.3.7' },
     { name = 'vtsls', version = '0.3.0' },
 }

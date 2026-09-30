@@ -23,7 +23,7 @@ mise exec -- task doctor  # Selected tool versions and LSP health
 
 All Neovim verification tasks use isolated XDG config, data, state, and cache directories under `.task/`. Run `task setup` before checking. Checks fail if dependencies are missing or drift from their pins; they do not silently skip integration tests or restore dependencies. With mise shell activation enabled, the `mise exec --` prefix is optional.
 
-`task test` checks startup, resolved server configuration, installed dependency versions, formatter selection, and the autoformat policy. `task test:lsp` additionally verifies automatic `ty` attachment, an intentional type error, buffer-local inlay-hint toggling, and actual Python formatting. Errors produce a nonzero exit status. Live attachment of the other language servers is not covered.
+`task test` checks startup, resolved server configuration, installed dependency versions, formatter selection, and the autoformat policy. `task test:lsp` removes only the sandbox's Python tools (`ty`, Black, and Ruff), then verifies first-use installation, deduplication of repeated filetype events, automatic attachment, an intentional type error, buffer-local inlay-hint toggling, and actual Python formatting. This test requires network access. Errors produce a nonzero exit status. Live attachment of the other language servers is not covered.
 
 For the normal Neovim installation, use `:Lazy restore` and `:MasonToolsInstallSync`. The Taskfile only restores the verification sandbox. Neovim's version is pinned independently for verification in mise; Bob can continue managing your daily editor.
 
@@ -34,7 +34,11 @@ For the normal Neovim installation, use `:Lazy restore` and `:MasonToolsInstallS
 3. Update Mason package versions in `lua/lsp/servers.lua` or `lua/plugins/mason-tool-installer-nvim.lua`.
 4. Run `task setup`, `task check`, and `task doctor` and review the diff.
 
-Mason automatic installation and updates are disabled during normal startup. `task setup` and `task restore` are explicit operations that install the versions declared in the configuration.
+Language servers are installed asynchronously at their pinned versions only when a matching filetype is opened. After installation, the server attaches to existing matching buffers. Repeated filetype events share the pending install; failures are reported and another filetype event can retry. A previously installed version is reconciled to its pin on first use. Vue support is disabled.
+
+Main formatters also install on opening their filetype. Python installs Black and Ruff; sequential formatter pipelines install each tool. Alternative lists install only their first choice (Biome for JavaScript/TypeScript/JSON, prettierd for Markdown/YAML). Formatting becomes available after installation completes; opening a file does not automatically format it. `<leader>uf` still controls format-on-save.
+
+`task setup`, `task restore`, and `:MasonToolsInstallSync` install standalone tools and formatters, not the LSP list. Unused language servers can remain absent. Existing server installations are retained, but are enabled only after opening their filetypes.
 
 ## Other dependencies
 

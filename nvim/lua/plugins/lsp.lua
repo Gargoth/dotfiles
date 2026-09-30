@@ -8,6 +8,7 @@ return {
             require('plugins.fidget-nvim'),
             require('plugins.lazydev'),
             require('plugins.blink-cmp'),
+            require('plugins.conform-nvim'),
         },
         config = function()
             vim.api.nvim_create_autocmd('LspAttach', {
@@ -39,11 +40,7 @@ return {
                 end,
             })
 
-            local servers = require('lsp.servers')
-            local server_names = vim.tbl_map(function(server)
-                return server.name
-            end, servers)
-            vim.lsp.enable(server_names)
+            require('lsp.install').setup()
 
             vim.diagnostic.config({ virtual_text = false })
         end,

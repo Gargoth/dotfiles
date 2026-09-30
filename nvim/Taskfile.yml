@@ -7,7 +7,7 @@ tasks:
       - task: check
 
   setup:
-    desc: Restore pinned plugins and install pinned Mason packages in the test sandbox
+    desc: Restore pinned plugins and standalone tools (LSPs install on first use)
     cmds:
       - mise exec -- python3 tests/run.py restore
 
@@ -37,7 +37,7 @@ tasks:
       - mise exec -- python3 tests/run.py test
 
   test:lsp:
-    desc: Verify automatic ty attachment, diagnostics, and buffer-local inlay hints
+    desc: Verify fresh on-demand ty installation, attachment, diagnostics, and inlay hints
     cmds:
       - mise exec -- python3 tests/run.py lsp
 
