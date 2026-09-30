@@ -40,7 +40,7 @@ return {
                 end,
             })
 
-            require('lsp.install').setup()
+            require('tools.install').setup()
 
             vim.diagnostic.config({ virtual_text = false })
         end,

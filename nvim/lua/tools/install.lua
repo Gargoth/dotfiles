@@ -5,15 +5,23 @@ function M.setup()
     local mapping = require('mason-lspconfig').get_mappings().lspconfig_to_package
     local servers = require('lsp.servers')
     local tool_versions = {}
-    for _, tool in ipairs(require('plugins.mason-tool-installer-nvim').opts.ensure_installed) do
+    for _, tool in ipairs(require('tools.packages')) do
         tool_versions[tool[1]] = tool.version
     end
-    local formatter_packages = { ruff_fix = 'ruff' }
+    local formatter_packages = require('tools.formatters')
     local pending = {}
-    local ready = {}
+
+    local function installed_version(package_name)
+        local receipt = vim.fn.stdpath('data') .. '/mason/packages/' .. package_name .. '/mason-receipt.json'
+        if vim.fn.filereadable(receipt) == 0 then
+            return nil
+        end
+        local data = vim.json.decode(table.concat(vim.fn.readfile(receipt), '\n'))
+        return data.source.id:match('@([^?]+)')
+    end
 
     local function ensure(tool)
-        if pending[tool.name] or ready[tool.name] then
+        if pending[tool.name] then
             return
         end
         pending[tool.name] = true
@@ -21,14 +29,26 @@ function M.setup()
         local function complete(success, err)
             pending[tool.name] = nil
             if success then
-                ready[tool.name] = true
                 if tool.server then
                     -- enable() also starts the server for matching buffers already open.
-                    vim.lsp.enable(tool.name)
+                    local ok, activation_error = pcall(vim.lsp.enable, tool.name)
+                    if not ok then
+                        vim.notify(('Failed to enable %s: %s'):format(tool.name, activation_error), vim.log.levels.ERROR)
+                    end
                 end
             else
                 vim.notify(('Failed to install %s@%s: %s'):format(tool.name, tool.version, tostring(err)), vim.log.levels.ERROR)
             end
+        end
+
+        local package_name = tool.server and assert(mapping[tool.name], 'missing Mason package mapping') or tool.name
+        if installed_version(package_name) == tool.version then
+            if not tool.server or not vim.lsp.is_enabled(tool.name) then
+                complete(true)
+            else
+                pending[tool.name] = nil
+            end
+            return
         end
 
         registry.refresh(vim.schedule_wrap(function(success)
@@ -37,7 +57,6 @@ function M.setup()
                 return
             end
             local ok, err = pcall(function()
-                local package_name = tool.server and assert(mapping[tool.name], 'missing Mason package mapping') or tool.name
                 local package = registry.get_package(package_name)
                 if package:is_installed() and package:get_installed_version() == tool.version then
                     complete(true)
@@ -64,6 +83,17 @@ function M.setup()
         end))
     end
 
+    registry:on(
+        'package:uninstall:success',
+        vim.schedule_wrap(function(package)
+            for _, server in ipairs(servers) do
+                if mapping[server.name] == package.name then
+                    vim.lsp.enable(server.name, false)
+                end
+            end
+        end)
+    )
+
     local function on_filetype(buffer)
         if vim.bo[buffer].buftype ~= '' then
             return
@@ -86,7 +116,7 @@ function M.setup()
     end
 
     vim.api.nvim_create_autocmd('FileType', {
-        group = vim.api.nvim_create_augroup('lsp-install', { clear = true }),
+        group = vim.api.nvim_create_augroup('tool-install', { clear = true }),
         callback = function(event)
             on_filetype(event.buf)
         end,

@@ -150,10 +150,11 @@ for name, version in pairs(tools_by_name) do
     assert_equal(receipt.source.id:match('@([^?]+)'), version, 'tool version drift: ' .. name)
 end
 
-if vim.env.NVIM_TEST_MODE == 'lsp' then
+local mode = vim.env.NVIM_TEST_MODE
+if mode == 'lsp' or mode == 'install' then
     -- Reset the sandbox's Python tools to exercise real first-use installation.
     local package = registry.get_package('ty')
-    for _, name in ipairs({ 'ty', 'black', 'ruff' }) do
+    for _, name in ipairs(mode == 'install' and { 'ty', 'black', 'ruff' } or {}) do
         local tool = registry.get_package(name)
         if tool:is_installed() then
             local removed = false
@@ -166,6 +167,26 @@ if vim.env.NVIM_TEST_MODE == 'lsp' then
             end, 30000, 'sandbox ' .. name .. ' uninstall timed out')
         end
     end
+    local original_refresh = registry.refresh
+    local original_notify = vim.notify
+    local install_failures = {}
+    if mode == 'lsp' then
+        registry.refresh = function()
+            error('installed tools must activate without a registry refresh')
+        end
+    else
+        -- Inject a registry outage at the I/O boundary, then retry using real Mason.
+        registry.refresh = function(callback)
+            callback(false)
+        end
+        vim.notify = function(message, level, options)
+            if tostring(message):find('Mason registry refresh failed', 1, true) then
+                install_failures[#install_failures + 1] = message
+                return
+            end
+            return original_notify(message, level, options)
+        end
+    end
     local fixture_dir = vim.fn.tempname()
     vim.fn.mkdir(fixture_dir, 'p')
     local fixture = fixture_dir .. '/type_error.py'
@@ -173,6 +194,14 @@ if vim.env.NVIM_TEST_MODE == 'lsp' then
     vim.fn.writefile({ '[project]', 'name = "nvim-test"', 'version = "0.0.0"' }, fixture_dir .. '/pyproject.toml')
     vim.cmd.edit(fixture)
     vim.bo.filetype = 'python'
+    if mode == 'install' then
+        wait_until(function()
+            return #install_failures == 3
+        end, 10000, 'registry failure did not report all three Python tool failures')
+        assert_equal(requests, {}, 'registry failure must not start package installs')
+        registry.refresh = original_refresh
+        vim.notify = original_notify
+    end
     vim.api.nvim_exec_autocmds('FileType', { buffer = 0 })
     vim.api.nvim_exec_autocmds('FileType', { buffer = 0 })
 
@@ -186,8 +215,9 @@ if vim.env.NVIM_TEST_MODE == 'lsp' then
             and not registry.get_package('ruff'):is_installing()
     end, 120000, 'pinned Python formatters did not install on first use')
     table.sort(requests)
-    assert_equal(requests, { 'black', 'ruff', 'ty' }, 'repeated Python FileType events must install each Python tool only once')
+    assert_equal(requests, mode == 'install' and { 'black', 'ruff', 'ty' } or {}, 'filetype installation requests must be deduplicated')
     assert_equal(package:get_installed_version(), '0.0.84', 'first-use installation must respect the ty pin')
+    registry.refresh = original_refresh
 
     wait_until(function()
         for _, diagnostic in ipairs(vim.diagnostic.get(0)) do
@@ -218,7 +248,45 @@ if vim.env.NVIM_TEST_MODE == 'lsp' then
     end)
     assert(format_error == nil, 'Python formatters failed: ' .. tostring(format_error))
     assert_equal(vim.api.nvim_buf_get_lines(0, 0, -1, false), { 'result = {"answer": 42}' }, 'Python formatting regression')
+    if mode == 'install' then
+        -- Uninstall after the installer has marked a formatter usable, then reopen.
+        local black = registry.get_package('black')
+        local removed = false
+        black:uninstall({}, function(success)
+            assert(success, 'Black uninstall failed')
+            removed = true
+        end)
+        wait_until(function()
+            return removed
+        end, 30000, 'Black uninstall timed out')
+        vim.api.nvim_exec_autocmds('FileType', { buffer = 0 })
+        wait_until(function()
+            return black:get_installed_version() == tools_by_name.black and not black:is_installing()
+        end, 120000, 'reopening Python did not reinstall Black')
+
+        local server_removed = false
+        package:uninstall({}, function(success)
+            assert(success, 'ty uninstall failed')
+            server_removed = true
+        end)
+        wait_until(function()
+            return server_removed and not vim.lsp.is_enabled('ty')
+        end, 30000, 'uninstalling ty did not invalidate LSP activation')
+        vim.api.nvim_exec_autocmds('FileType', { buffer = 0 })
+        wait_until(function()
+            return package:get_installed_version() == '0.0.84' and vim.lsp.is_enabled('ty') and #vim.lsp.get_clients({ bufnr = 0, name = 'ty' }) == 1
+        end, 120000, 'reopening Python did not reinstall and reactivate ty')
+        vim.lsp.get_clients({ bufnr = 0, name = 'ty' })[1]:stop(true)
+    end
     vim.fn.delete(fixture_dir, 'rf')
 end
+
+-- Run the same journal command used by the keymap inside the sandbox workspace.
+vim.cmd('Neorg workspace default')
+vim.cmd('Neorg journal today')
+local journal_path = vim.api.nvim_buf_get_name(0)
+assert(journal_path:find(vim.env.NVIM_TEST_WORKSPACE .. '/journal/', 1, true) == 1, 'journal escaped test workspace')
+vim.cmd.write()
+assert(vim.fn.filereadable(journal_path) == 1, 'journal command did not create an entry')
 
 print('Neovim configuration checks passed')

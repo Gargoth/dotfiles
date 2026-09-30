@@ -37,9 +37,20 @@ tasks:
       - mise exec -- python3 tests/run.py test
 
   test:lsp:
-    desc: Verify fresh on-demand ty installation, attachment, diagnostics, and inlay hints
+    desc: Verify installed Python tools, attachment, diagnostics, and inlay hints
     cmds:
       - mise exec -- python3 tests/run.py lsp
+
+  test:install:
+    desc: Verify fresh first-use installation and uninstall/reopen (requires network)
+    cmds:
+      - mise exec -- python3 tests/run.py install
+
+  check:full:
+    desc: Run all checks including fresh network installation
+    cmds:
+      - task: check
+      - task: test:install
 
   check:
     desc: Run syntax, formatting, configuration, and live Python integration checks

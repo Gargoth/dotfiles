@@ -19,11 +19,13 @@ return {
             ['core.dirman'] = {
                 config = {
                     workspaces = {
-                        default = '~/Neorg',
+                        default = vim.env.NVIM_TEST_WORKSPACE or '~/Neorg',
                     },
                     index = 'index.norg',
                 },
-                ['core.journal'] = {
+            },
+            ['core.journal'] = {
+                config = {
                     workspace = 'default',
                 },
             },
