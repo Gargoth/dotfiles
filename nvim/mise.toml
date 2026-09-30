@@ -1,0 +1,4 @@
+[tools]
+"aqua:neovim/neovim" = "0.12.3"
+"aqua:go-task/task" = "3.53.1"
+stylua = "2.5.2"

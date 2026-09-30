@@ -20,7 +20,7 @@ return {
                 '<leader>st',
                 ':TodoTelescope<CR>',
                 desc = 'Jump to previous todo comment',
-            }
-        }
+            },
+        },
     },
 }

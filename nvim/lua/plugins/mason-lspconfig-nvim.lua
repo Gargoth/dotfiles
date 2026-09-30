@@ -1,6 +1,6 @@
 return {
     'mason-org/mason-lspconfig.nvim',
     opts = {
-        automatic_enable = true,
+        automatic_enable = false,
     },
 }

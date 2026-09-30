@@ -1,0 +1,16 @@
+return {
+    { name = 'fish_lsp', version = '1.1.4' },
+    { name = 'gopls', version = 'v0.23.0' },
+    { name = 'jsonls', version = '4.10.0' },
+    { name = 'kotlin_lsp', version = 'kotlin-lsp/v262.8190.0' },
+    { name = 'laravel_ls', version = 'v0.1.0' },
+    { name = 'lua_ls', version = '3.18.2' },
+    { name = 'phpactor', version = '2026.06.25.0' },
+    { name = 'rust_analyzer', version = '2026-07-13' },
+    { name = 'svelte', version = '0.18.3' },
+    { name = 'tailwindcss', version = '0.16.0' },
+    { name = 'tombi', version = 'v1.4.0' },
+    { name = 'ty', version = '0.0.84' },
+    { name = 'vue_ls', version = '3.3.7' },
+    { name = 'vtsls', version = '0.3.0' },
+}

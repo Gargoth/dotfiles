@@ -1,29 +1,34 @@
 return {
-    "nvim-neorg/neorg",
-    version = "*", -- Pin Neorg to the latest stable release
+    'nvim-neorg/neorg',
     lazy = false,
     priority = 0,
     dependencies = {
+        'nvim-neorg/lua-utils.nvim',
+        'nvim-neotest/nvim-nio',
+        'MunifTanjim/nui.nvim',
+        'pysan3/pathlib.nvim',
+        { 'nvim-neorg/tree-sitter-norg', build = 'mkdir -p parser && cc -O2 -fPIC -shared -Isrc src/parser.c src/scanner.cc -lstdc++ -o parser/norg.so' },
+        { 'nvim-neorg/tree-sitter-norg-meta', build = 'mkdir -p parser && cc -O2 -fPIC -shared -Isrc src/parser.c -o parser/norg_meta.so' },
         require('plugins.neorg-telescope'),
         require('plugins.snacks'),
     },
     opts = {
         load = {
-            ["core.defaults"] = {},
-            ["core.concealer"] = {},
-            ["core.dirman"] = {
+            ['core.defaults'] = {},
+            ['core.concealer'] = {},
+            ['core.dirman'] = {
                 config = {
                     workspaces = {
-                        default = "~/Neorg",
+                        default = '~/Neorg',
                     },
-                    index = "index.norg",
+                    index = 'index.norg',
                 },
-                ["core.journal"] = {
-                    workspace = "default",
-                }
+                ['core.journal'] = {
+                    workspace = 'default',
+                },
             },
-            ["core.integrations.telescope"] = {},
-        }
+            ['core.integrations.telescope'] = {},
+        },
     },
     keys = {
         {
@@ -73,7 +78,7 @@ return {
                 local keys = vim.api.nvim_replace_termcodes('<C-6>', true, false, true)
                 vim.api.nvim_feedkeys(keys, 'n', false)
             end,
-            desc = '[neorg] Delete and reopen buffer to refresh'
-        }
-    }
+            desc = '[neorg] Delete and reopen buffer to refresh',
+        },
+    },
 }

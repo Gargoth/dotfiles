@@ -7,7 +7,7 @@ return {
         {
             '<leader>cf',
             function()
-                require('conform').format({ async = true, lsp_fallback = true })
+                require('conform').format({ async = true })
             end,
             mode = '',
             desc = '[C]ode [F]ormat buffer',
@@ -24,32 +24,27 @@ return {
     },
     opts = {
         notify_on_error = false,
-        format_on_save = function(bufnr)
+        default_format_opts = { lsp_format = 'fallback' },
+        format_on_save = function()
             if not vim.g.autoformat then
                 return
             end
 
-            local disable_filetypes = {
-                -- c = true,
-                -- cpp = true
-            }
             return {
                 timeout_ms = 500,
-                lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
             }
         end,
         formatters_by_ft = {
-            lua = { 'stylua', 'lua_ls' },
-            markdown = { 'prettierd', 'prettier' },
-            yaml = { 'prettierd', 'prettier' },
-            json = { 'biome', 'prettierd', 'prettier' },
-            java = { 'checkstyle', 'jdtls' },
-            python = { 'black', 'ruff', 'basedpyright' },
-            kotlin = { 'ktfmt', 'ktlint' },
-            javascript = { 'biome', 'prettierd', 'prettier' },
-            typescript = { 'biome', 'prettierd', 'prettier' },
+            lua = { 'stylua' },
+            markdown = { 'prettierd', 'prettier', stop_after_first = true },
+            yaml = { 'prettierd', 'prettier', stop_after_first = true },
+            json = { 'biome', 'prettierd', 'prettier', stop_after_first = true },
+            python = { 'black', 'ruff_fix' },
+            kotlin = { 'ktfmt' },
+            javascript = { 'biome', 'prettierd', 'prettier', stop_after_first = true },
+            typescript = { 'biome', 'prettierd', 'prettier', stop_after_first = true },
             blade = { 'blade-formatter' },
-            typst = { 'prettypst', 'tinymist' },
+            typst = { 'prettypst' },
         },
     },
 }

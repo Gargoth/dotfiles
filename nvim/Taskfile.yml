@@ -1,0 +1,56 @@
+version: '3'
+
+tasks:
+  default:
+    desc: Run all local configuration checks
+    cmds:
+      - task: check
+
+  setup:
+    desc: Restore pinned plugins and install pinned Mason packages in the test sandbox
+    cmds:
+      - mise exec -- python3 tests/run.py restore
+
+  restore:
+    desc: Restore the isolated verification installation to the declared versions
+    cmds:
+      - task: setup
+
+  format:
+    desc: Format maintained Lua files
+    cmds:
+      - mise exec -- stylua init.lua lua after tests
+
+  format:check:
+    desc: Check maintained Lua formatting
+    cmds:
+      - mise exec -- stylua --check init.lua lua after tests
+
+  syntax:
+    desc: Parse maintained Lua with Neovim LuaJIT
+    cmds:
+      - mise exec -- nvim -l tests/syntax.lua
+
+  test:
+    desc: Check real startup, resolved configuration, and dependency pins
+    cmds:
+      - mise exec -- python3 tests/run.py test
+
+  test:lsp:
+    desc: Verify automatic ty attachment, diagnostics, and buffer-local inlay hints
+    cmds:
+      - mise exec -- python3 tests/run.py lsp
+
+  check:
+    desc: Run syntax, formatting, configuration, and live Python integration checks
+    cmds:
+      - task: syntax
+      - task: format:check
+      - task: test
+      - task: test:lsp
+
+  doctor:
+    desc: Show selected tool versions and LSP health
+    cmds:
+      - mise ls --current
+      - mise exec -- python3 tests/run.py doctor

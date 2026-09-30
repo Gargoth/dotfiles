@@ -3,9 +3,7 @@ return {
     dependencies = {
         require('plugins.friendly-snippets'),
     },
-    build = function() require('blink.pairs').build():pwait(60000) end,
-    version = '1.*',
-
+    version = '1.10.2',
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
     opts = {

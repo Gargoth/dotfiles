@@ -1,6 +1,4 @@
-require('lsp').add('lua_ls')
-
-vim.lsp.config('lua_ls', {
+return {
     settings = {
         Lua = {
             completion = {
@@ -8,6 +6,4 @@ vim.lsp.config('lua_ls', {
             },
         },
     },
-})
-
-vim.lsp.enable('lua_ls')
+}
