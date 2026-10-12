@@ -3,6 +3,17 @@ set -Eeuo pipefail
 trap 'status=$?; printf "Setup failed at line %s: %s (exit %s)\n" "$LINENO" "$BASH_COMMAND" "$status" >&2; exit "$status"' ERR
 source "$(dirname "${BASH_SOURCE[0]}")/setup_common.sh"
 
+if [[ ! -r /etc/os-release ]]; then
+    printf 'Cannot identify operating system: /etc/os-release is unavailable.\n' >&2
+    exit 1
+fi
+source /etc/os-release
+if [[ "${ID:-}" != ubuntu || "${VERSION_ID:-}" != 26.04 ]]; then
+    printf 'Unsupported distribution: expected Ubuntu 26.04, found %s %s.\n' \
+        "${ID:-unknown}" "${VERSION_ID:-unknown}" >&2
+    exit 1
+fi
+
 # Fallback terminal type to fix Ghostty terminfo errors on Ubuntu
 export TERM=xterm-256color
 
@@ -52,8 +63,9 @@ packages=(
     tmux
     poppler-utils
     python3-venv
+    python3-pip
+    python3
     curl
-    libfuse2
     unzip
     yazi
 )
@@ -64,7 +76,16 @@ gum spin --title "Adding Yazi unofficial repository..." -- \
 
 # 3. Update system and install standard packages
 gum spin --title "Upgrading system and installing standard packages..." -- \
-    bash -c "sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y"
+    bash -c "sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -y"
+
+if apt-cache show libfuse2t64 >/dev/null 2>&1; then
+    packages+=(libfuse2t64)
+elif apt-cache show libfuse2 >/dev/null 2>&1; then
+    packages+=(libfuse2)
+else
+    printf 'No compatible libfuse2 package is available for Beeper AppImage support.\n' >&2
+    exit 1
+fi
 
 gum spin --title "Installing apt packages..." -- \
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "${packages[@]}"

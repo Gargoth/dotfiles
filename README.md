@@ -1,19 +1,18 @@
 # Dotfiles
 
 Personal configuration for Fish, Neovim, tmux, Ghostty, WezTerm, and other tools.
+The setup script targets Ubuntu 26.04; Fish-specific helpers also support macOS.
 
 ## Setup
 
-The setup scripts install packages and language runtimes for Ubuntu or openSUSE:
+The setup script installs packages and language runtimes on Ubuntu 26.04:
 
 ```sh
 ./ubuntu_setup.sh
-# or
-./opensuse_setup.sh
 ```
 
-They require `sudo` access and an interactive terminal. The scripts install Fish,
-Bob, and Neovim 0.12.3, then install Node.js with Volta and Bun and Deno with
+The setup script requires `sudo` access and an interactive terminal. It installs Fish,
+Bob, and Neovim 0.12.3, then installs Node.js with Volta and Bun and Deno with
 their upstream installers.
 
 After installing packages, link all configurations with a preview first:
