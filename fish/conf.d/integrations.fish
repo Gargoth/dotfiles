@@ -1,11 +1,13 @@
 # bun
 set --export BUN_INSTALL "$HOME/.bun"
-set --export PATH $BUN_INSTALL/bin $PATH
 
-# Bob nvim version manager
-if type -q bob
-    fish_add_path "$HOME/.local/share/bob/nvim-bin"
-end
+# User-installed tools; these paths remain defined when Fish itself is symlinked.
+fish_add_path --path \
+    "$HOME/.volta/bin" \
+    "$BUN_INSTALL/bin" \
+    "$HOME/.deno/bin" \
+    "$HOME/.local/bin" \
+    "$HOME/.local/share/bob/nvim-bin"
 
 if status is-interactive
     # Prompt and navigation integrations
@@ -15,10 +17,6 @@ if status is-interactive
 
     if type -q zoxide
         zoxide init fish | source
-    end
-
-    if type -q gh
-        gh completion -s fish | source
     end
 
     # direnv
@@ -31,24 +29,8 @@ if status is-interactive
         atuin init fish --disable-up-arrow | source
     end
 
-    # fx
-    if type -q fx
-        fx --comp fish | source
-    end
-
-    # podman
-    if type -q podman
-        podman completion fish | source
-    end
-
-    # dagger
-    if type -q dagger
-        dagger completion fish | source
-    end
-
     # mise
     if type -q mise
-        mise completion fish | source
         mise activate fish | source
     end
 
@@ -58,13 +40,4 @@ if status is-interactive
         alias podman='distrobox-host-exec podman'
     end
 
-    # LXD / LXC
-    if type -q lxc
-        lxc completion fish | source
-    end
-
-    # Temporal
-    if type -q temporal
-        temporal completion fish | source
-    end
 end

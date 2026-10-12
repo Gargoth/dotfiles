@@ -1,1 +1,9 @@
 *
+!.gitignore
+!gh.fish
+!fx.fish
+!podman.fish
+!dagger.fish
+!mise.fish
+!lxc.fish
+!temporal.fish
