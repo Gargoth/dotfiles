@@ -1,7 +1,10 @@
 function gac
-    if test $argv
-        git add . && git commit -m $argv
+    if test (count $argv) -gt 0
+        set -l message (string join ' ' -- $argv)
+        git add .; or return
+        git commit "--message=$message"
     else
-        git add . && git commit
+        git add .; or return
+        git commit
     end
 end

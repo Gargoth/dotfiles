@@ -1,6 +1,7 @@
 function gca
-    if test $argv
-        git commit --amend -m $argv
+    if test (count $argv) -gt 0
+        set -l message (string join ' ' -- $argv)
+        git commit --amend "--message=$message"
     else
         git commit --amend
     end

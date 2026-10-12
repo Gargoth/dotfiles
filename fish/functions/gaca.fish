@@ -1,9 +1,10 @@
 function gaca
-    if test $argv
-        git add .
-        git commit --amend -m $argv
+    if test (count $argv) -gt 0
+        set -l message (string join ' ' -- $argv)
+        git add .; or return
+        git commit --amend "--message=$message"
     else
-        git add .
+        git add .; or return
         git commit --amend
     end
 end
