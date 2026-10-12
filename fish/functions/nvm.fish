@@ -224,11 +224,21 @@ function _nvm_current
 end
 
 function _nvm_node_info
-    set --local npm_path (string replace bin/npm-cli.js "" (realpath (command --search npm)))
-    test -f $npm_path/package.json || set --local npm_version_default (command npm --version)
-    command node --eval "
-        console.log(process.version)
-        console.log('$npm_version_default' ? '$npm_version_default': require('$npm_path/package.json').version)
-        console.log(process.execPath)
-    " | string replace -- ~ \~
+    set --local npm_executable (command --search npm)
+    or begin
+        echo "nvm: npm is not available." >&2
+        return 1
+    end
+    set --local npm_path (path resolve (string replace 'bin/npm-cli.js' '' -- "$npm_executable"))
+    set --local npm_version_default
+    if not test -f "$npm_path/package.json"
+        set npm_version_default (command npm --version); or return
+    end
+    env NVM_NPM_PATH="$npm_path/package.json" NVM_NPM_VERSION="$npm_version_default" command node --eval '
+        const fs = require("node:fs");
+        const packageVersion = process.env.NVM_NPM_VERSION || JSON.parse(fs.readFileSync(process.env.NVM_NPM_PATH, "utf8")).version;
+        console.log(process.version);
+        console.log(packageVersion);
+        console.log(process.execPath);
+    ' | string replace -- ~ \~
 end
