@@ -1,4 +1,5 @@
 function neorg
-    mkdir -p ~/Neorg
-    cd ~/Neorg
+    set -l notes_dir "$HOME/Neorg"
+    mkdir -p "$notes_dir"; or return
+    cd -- "$notes_dir"
 end

@@ -6,8 +6,9 @@ switch (uname)
         # abbr --add here 'explorer.exe .'
         # abbr --add open wslview
     case Darwin
-        # MacOs
-        alias python="python3.11"     # To get around janky pip installs
+        # macOS
+        if type -q python3
+            alias python=python3
+        end
     case '*'
 end
-
