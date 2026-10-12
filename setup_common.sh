@@ -1,35 +1,64 @@
 #!/usr/bin/env bash
 
 install_common_toolchains() {
-    gum spin --title "Installing Rust toolchain..." -- \
-        bash -o pipefail -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+    local rust_installer
+    rust_installer=$(mktemp)
+    trap 'rm -f "$rust_installer"' RETURN
+    curl --proto '=https' --tlsv1.2 -fsS https://sh.rustup.rs -o "$rust_installer"
+    gum spin --title "Installing Rust toolchain..." -- sh "$rust_installer" -y
+    rm -f "$rust_installer"
+    trap - RETURN
     source "$HOME/.cargo/env"
 
     gum style --foreground 212 "Installing bob-nvim and Neovim 0.12.3..."
-    curl -fsSL https://raw.githubusercontent.com/MordechaiHadad/bob/master/scripts/install.sh | bash
+    local bob_installer
+    bob_installer=$(mktemp)
+    trap 'rm -f "$bob_installer"' RETURN
+    curl -fsSL https://raw.githubusercontent.com/MordechaiHadad/bob/master/scripts/install.sh -o "$bob_installer"
+    bash "$bob_installer"
+    rm -f "$bob_installer"
+    trap - RETURN
     "$HOME/.local/bin/bob" install v0.12.3
     "$HOME/.local/bin/bob" use v0.12.3
 
     gum style --foreground 212 "Installing Volta..."
-    curl -fsSL https://get.volta.sh | bash
+    local volta_installer
+    volta_installer=$(mktemp)
+    trap 'rm -f "$volta_installer"' RETURN
+    curl -fsSL https://get.volta.sh -o "$volta_installer"
+    bash "$volta_installer"
+    rm -f "$volta_installer"
+    trap - RETURN
 
     gum spin --title "Installing Node.js with Volta..." -- \
         "$HOME/.volta/bin/volta" install node
-    gum spin --title "Installing Bun..." -- \
-        bash -o pipefail -c 'curl -fsSL https://bun.sh/install | bash'
-    gum spin --title "Installing Deno..." -- \
-        bash -o pipefail -c 'curl -fsSL https://deno.land/install.sh | sh'
+    local bun_installer deno_installer
+    bun_installer=$(mktemp)
+    deno_installer=$(mktemp)
+    trap 'rm -f "$bun_installer" "$deno_installer"' RETURN
+    curl -fsSL https://bun.sh/install -o "$bun_installer"
+    curl -fsSL https://deno.land/install.sh -o "$deno_installer"
+    gum spin --title "Installing Bun..." -- bash "$bun_installer"
+    gum spin --title "Installing Deno..." -- sh "$deno_installer"
+    rm -f "$bun_installer" "$deno_installer"
+    trap - RETURN
 
-    gum spin --title "Adding binaries to Fish path..." -- \
-        fish -c 'fish_add_path "$HOME/.volta/bin" "$HOME/.bun/bin" "$HOME/.deno/bin" "$HOME/.local/bin" "$HOME/.local/share/bob/nvim-bin"'
 }
 
 install_beeper() {
     mkdir -p "$HOME/Applications"
-    gum spin --title "Downloading Beeper..." -- \
-        curl -fsSL -L -o "$HOME/Applications/Beeper.AppImage" \
-        "https://api.beeper.com/desktop/download/linux/x64/stable/com.automattic.beeper.desktop"
-    chmod +x "$HOME/Applications/Beeper.AppImage"
+    local download_path
+    download_path=$(mktemp "$HOME/Applications/.Beeper.AppImage.XXXXXX")
+    trap 'rm -f "$download_path"' RETURN
+    if ! gum spin --title "Downloading Beeper..." -- \
+        curl -fsSL -L -o "$download_path" \
+        "https://api.beeper.com/desktop/download/linux/x64/stable/com.automattic.beeper.desktop"; then
+        rm -f "$download_path"
+        return 1
+    fi
+    chmod +x "$download_path"
+    mv -f "$download_path" "$HOME/Applications/Beeper.AppImage"
+    trap - RETURN
 
     mkdir -p "$HOME/.local/share/applications"
     cat > "$HOME/.local/share/applications/beeper.desktop" <<EOF
