@@ -41,3 +41,6 @@ plugins declared in `tmux/tmux.conf`.
 Neovim dependencies, pinned tool versions, and isolated verification steps are
 documented in [`nvim/README.md`](nvim/README.md). The Neovim verification suite
 uses mise and Task; it does not modify the normal Neovim installation.
+
+User guides are available for [Fish](fish/README.md) and Neovim's
+[keybindings](nvim/docs/keybindings.md) and [workflows](nvim/docs/workflows.md).

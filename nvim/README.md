@@ -1,5 +1,10 @@
 # Neovim configuration
 
+User-facing mappings and workflows are documented in
+[`docs/keybindings.md`](docs/keybindings.md) and
+[`docs/workflows.md`](docs/workflows.md). The workflow guide includes the
+Gitsigns gutter review flow and the Fish review helpers.
+
 ## Requirements
 
 - Neovim **0.12.3** (managed with [bob](https://github.com/MordechaiHadad/bob))
