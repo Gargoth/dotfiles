@@ -9,18 +9,12 @@ import sys
 from pathlib import Path
 
 
-EXCLUDED_DIRS = {"__pycache__", "freelancer", "themes"}
+CONFIGS = ("fish", "ghostty", "jrnl", "nvim", "tmux", "wezterm")
 
 
 def get_available_configs(repo_path: Path) -> list[str]:
     """Get list of available configuration directories in the repository."""
-    return sorted(
-        item.name
-        for item in repo_path.iterdir()
-        if item.is_dir()
-        and not item.name.startswith(".")
-        and item.name not in EXCLUDED_DIRS
-    )
+    return [name for name in CONFIGS if (repo_path / name).is_dir()]
 
 
 def backup_path(target_path: Path) -> Path:
@@ -62,9 +56,15 @@ def create_symlink(source_dir: Path, target_dir: Path, dry_run: bool = False) ->
         print(f"Created symlink: {target_path} -> {source_dir}")
         return True
     except OSError as error:
+        rollback_error = None
         if backup is not None and not target_path.exists() and not target_path.is_symlink():
-            backup.replace(target_path)
+            try:
+                backup.replace(target_path)
+            except OSError as restore_error:
+                rollback_error = restore_error
         print(f"Failed to create symlink {target_path} -> {source_dir}: {error}")
+        if rollback_error is not None:
+            print(f"Also failed to restore backup {backup}: {rollback_error}")
         return False
 
 
@@ -114,10 +114,10 @@ Examples:
     
     # Get the current repository path
     repo_path = Path(__file__).parent.resolve()
-    config_dir = Path(
-        args.config_dir
-        or os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))
-    ).expanduser().resolve()
+    xdg_config_home = os.environ.get("XDG_CONFIG_HOME")
+    if not xdg_config_home:
+        xdg_config_home = str(Path.home() / ".config")
+    config_dir = Path(args.config_dir or xdg_config_home).expanduser().resolve()
     
     # Get available configs
     available_configs = get_available_configs(repo_path)
@@ -168,7 +168,8 @@ Examples:
         if linked:
             successful += 1
     
-    print(f"\nSuccessfully created {successful}/{len(configs_to_process)} symlinks.")
+    result = "Would create" if args.dry_run else "Created or verified"
+    print(f"\n{result} {successful}/{len(configs_to_process)} symlinks.")
     
     return 0 if successful == len(configs_to_process) else 1
 
