@@ -33,6 +33,9 @@ The target defaults to `$XDG_CONFIG_HOME` or `~/.config`. Existing targets are
 preserved as `.backup` siblings before links are created. Review and remove a
 backup only after confirming it contains no files you need.
 
+Install tmux plugins explicitly with `tmux/setup.sh`. It can be rerun to install
+plugins declared in `tmux/tmux.conf`.
+
 ## Neovim
 
 Neovim dependencies, pinned tool versions, and isolated verification steps are
