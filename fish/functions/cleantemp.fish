@@ -41,11 +41,6 @@ function cleantemp --description "Discard a temp review diff and return to its s
         end
     end
     if test (count $dirty_state) -gt 0
-        read -P "Discard tracked and untracked changes on temp? [y/N] " answer
-        if test "$answer" != y; and test "$answer" != Y
-            echo "Cleanup cancelled."
-            return 0
-        end
         git reset --hard; or return
         set -l repo_root (git rev-parse --show-toplevel); or return
         git -C "$repo_root" clean -fd; or return
