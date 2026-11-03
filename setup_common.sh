@@ -50,7 +50,7 @@ install_common_toolchains() {
     setup_header 'Installing Bun...'
     bash "$bun_installer"
     setup_header 'Installing Deno...'
-    sh "$deno_installer"
+    sh "$deno_installer" -y
     rm -f "$bun_installer" "$deno_installer"
     trap - RETURN
 
@@ -58,7 +58,7 @@ install_common_toolchains() {
 
 set_default_shell_to_fish() {
     setup_header 'Changing default shell to Fish...'
-    sudo chsh -s "$(command -v fish)" "$USER"
+    sudo -n chsh -s "$(command -v fish)" "$USER"
 }
 
 show_setup_complete() {
