@@ -32,6 +32,9 @@ The main entry points are:
 - Document destructive operations, confirmation behavior, scope, and recovery
   steps explicitly.
 - Use ASCII unless the surrounding file already requires another character set.
+- Keep shared shell and terminal configuration portable across Linux and macOS.
+  Do not introduce unconditional OS-specific executable paths; use portable
+  discovery with guarded platform-specific fallbacks and document prerequisites.
 
 ## Neovim
 

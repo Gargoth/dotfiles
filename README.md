@@ -36,6 +36,13 @@ backup only after confirming it contains no files you need.
 Install tmux plugins explicitly with `tmux/setup.sh`. It can be rerun to install
 plugins declared in `tmux/tmux.conf`.
 
+The shared tmux configuration supports Linux and macOS. It selects Fish for new
+windows when Fish is found on `PATH` or in a common install location; if Fish is
+not found, this configuration does not force a shell choice. This does not
+change the account's login shell. On macOS, if
+`reattach-to-user-namespace` is available, new windows launch Fish through it
+for compatibility with tmux's clipboard integration.
+
 ## Neovim
 
 Neovim dependencies, pinned tool versions, and isolated verification steps are
