@@ -92,7 +92,6 @@ gum spin --title "Installing apt packages..." -- \
 
 # 4. Install language toolchains and user applications
 install_common_toolchains
-install_beeper
 
 # 5. Change default shell to Fish
 set_default_shell_to_fish

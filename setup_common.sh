@@ -45,33 +45,6 @@ install_common_toolchains() {
 
 }
 
-install_beeper() {
-    mkdir -p "$HOME/Applications"
-    local download_path
-    download_path=$(mktemp "$HOME/Applications/.Beeper.AppImage.XXXXXX")
-    trap 'rm -f "$download_path"' RETURN
-    if ! gum spin --title "Downloading Beeper..." -- \
-        curl -fsSL -L -o "$download_path" \
-        "https://api.beeper.com/desktop/download/linux/x64/stable/com.automattic.beeper.desktop"; then
-        rm -f "$download_path"
-        return 1
-    fi
-    chmod +x "$download_path"
-    mv -f "$download_path" "$HOME/Applications/Beeper.AppImage"
-    trap - RETURN
-
-    mkdir -p "$HOME/.local/share/applications"
-    cat > "$HOME/.local/share/applications/beeper.desktop" <<EOF
-[Desktop Entry]
-Name=Beeper
-Exec="$HOME/Applications/Beeper.AppImage" --no-sandbox
-Type=Application
-Categories=Network;InstantMessaging;
-Terminal=false
-StartupWMClass=BeeperTexts
-EOF
-}
-
 set_default_shell_to_fish() {
     gum spin --title "Changing default shell to Fish..." -- \
         sudo chsh -s "$(command -v fish)" "$USER"
