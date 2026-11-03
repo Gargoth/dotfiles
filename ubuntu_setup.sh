@@ -17,6 +17,8 @@ fi
 # Fallback terminal type to fix Ghostty terminfo errors on Ubuntu
 export TERM=xterm-256color
 
+setup_header 'Starting system setup'
+
 # Authenticate sudo upfront so hidden password prompts do not hang the script
 sudo -v
 
@@ -31,19 +33,7 @@ fi
 
 # Install tools required to configure external repositories.
 sudo apt-get update -y
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl gnupg lsb-release
-
-# 1. Install gum via Charm's official apt repository
-echo "Adding Charm repository and installing gum..."
-sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor --yes -o /etc/apt/keyrings/charm.gpg
-echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list > /dev/null
-sudo apt-get update -y
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y gum
-
-# Clear screen and show a pretty start message
-clear
-gum style --border normal --margin "1" --padding "1 2" --border-foreground 212 "Starting System Setup"
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl
 
 packages=(
     atuin
@@ -70,29 +60,23 @@ packages=(
     yazi
 )
 
-# 2. Add Yazi Debian repository
-gum spin --title "Adding Yazi unofficial repository..." -- \
-    bash -o pipefail -c 'curl -fsSL https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc | sudo gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/debian.griffo.io.gpg && printf "deb https://debian.griffo.io/apt %s main\n" "$(lsb_release -sc)" | sudo tee /etc/apt/sources.list.d/debian.griffo.io.list > /dev/null'
+# Add Yazi's official Debian and Ubuntu repository
+setup_header 'Adding Yazi official repository...'
+sudo mkdir -p /usr/share/keyrings
+curl -fsSL https://yazi-rs.github.io/builds/yazi-keyring.gpg | sudo tee /usr/share/keyrings/yazi-keyring.gpg >/dev/null
+printf 'deb [signed-by=/usr/share/keyrings/yazi-keyring.gpg] https://yazi-rs.github.io/builds/ stable main\n' \
+    | sudo tee /etc/apt/sources.list.d/yazi.list >/dev/null
 
-# 3. Update system and install standard packages
-gum spin --title "Upgrading system and installing standard packages..." -- \
-    bash -c "sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -y"
+# Update system and install standard packages
+setup_header 'Upgrading system and installing standard packages...'
+bash -c "sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -y"
 
-if apt-cache show libfuse2t64 >/dev/null 2>&1; then
-    packages+=(libfuse2t64)
-elif apt-cache show libfuse2 >/dev/null 2>&1; then
-    packages+=(libfuse2)
-else
-    printf 'No compatible libfuse2 package is available for Beeper AppImage support.\n' >&2
-    exit 1
-fi
+setup_header 'Installing apt packages...'
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "${packages[@]}"
 
-gum spin --title "Installing apt packages..." -- \
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "${packages[@]}"
-
-# 4. Install language toolchains and user applications
+# Install language toolchains and user applications
 install_common_toolchains
 
-# 5. Change default shell to Fish
+# Change default shell to Fish
 set_default_shell_to_fish
 show_setup_complete

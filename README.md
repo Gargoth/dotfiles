@@ -11,9 +11,11 @@ The setup script installs packages and language runtimes on Ubuntu 26.04:
 ./ubuntu_setup.sh
 ```
 
-The setup script requires `sudo` access and an interactive terminal. It installs Fish,
-Bob, and Neovim 0.12.3, then installs Node.js with Volta and Bun and Deno with
-their upstream installers.
+The setup script requires `sudo` access and an interactive terminal. It uses
+colored section headers in interactive terminals (disabled by `NO_COLOR`) and
+does not require Gum. It installs Fish, Bob, and Neovim 0.12.3, then installs
+Node.js with Volta and Bun and Deno with their upstream installers. Yazi is
+installed from its official upstream APT repository.
 
 After installing packages, link all configurations with a preview first:
 
