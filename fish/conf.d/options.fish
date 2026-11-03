@@ -1,11 +1,8 @@
-# Hide welcome message
-set fish_greeting
-set VIRTUAL_ENV_DISABLE_PROMPT 1
+# Environment shared by interactive and non-interactive Fish.
+set --global --export EDITOR nvim
+set --global --export CLICOLOR 1
+set --global VIRTUAL_ENV_DISABLE_PROMPT 1
 
-# Set to vi mode
-fish_vi_key_bindings
-
-# Set environment variables
-set -gx EDITOR nvim
-set -x CLICOLOR 1
-set -gx HOME ~
+if status is-interactive
+    set --global fish_greeting
+end

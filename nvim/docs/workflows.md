@@ -73,10 +73,6 @@ Ruff fixes; JavaScript/TypeScript/JSON prefer Biome; Markdown/YAML prefer
 prettierd or Prettier. The first use of a filetype may install the formatter;
 opening a file does not automatically format it.
 
-The Fish `nvimformat` helper formats tracked files one by one in headless
-Neovim. It prompts when the repository is dirty but can rewrite accepted local
-changes and does not roll back earlier files if a later file fails.
-
 ## Buffers, Windows, and Notes
 
 - `Space Space` opens the buffer picker; press `Space` followed by the backtick

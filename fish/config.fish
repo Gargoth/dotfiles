@@ -1,5 +1,5 @@
 if status is-interactive
-    # Commands to run in interactive sessions can go here
+    # Keep vi mode global and remove any older universal default.
+    fish_vi_key_bindings
+    set --erase --universal fish_key_bindings
 end
-
-set --global fish_key_bindings fish_vi_key_bindings
