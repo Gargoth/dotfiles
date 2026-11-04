@@ -33,6 +33,13 @@ function cleantemp --description "Discard a temp review diff and return to its s
         echo "Failed to inspect commits unique to temp." >&2
         return 1
     end
+    if test (count $dirty_state) -gt 0
+        read -P "Discard tracked changes and untracked files? [y/N] " answer
+        if test "$answer" != y; and test "$answer" != Y
+            echo "Cleanup cancelled."
+            return 0
+        end
+    end
     if test "$unique_commits" -gt 0
         read -P "Delete $unique_commits commit(s) unique to temp? [y/N] " answer
         if test "$answer" != y; and test "$answer" != Y
@@ -52,5 +59,4 @@ function cleantemp --description "Discard a temp review diff and return to its s
     end
     git switch "$return_branch"; or return
     git branch -D -- temp; or return
-    git config --remove-section branch.temp 2>/dev/null
 end
