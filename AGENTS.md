@@ -52,17 +52,18 @@ Add or change plugins through a focused spec and review the resulting lockfile
 change deliberately. Do not allow ordinary verification to update plugins or
 the user’s normal data directory.
 
-Language servers and tools are versioned in `nvim/lua/lsp/servers.lua` and
-`nvim/lua/tools/packages.lua`. Installation and activation are on demand and
-are coordinated by `nvim/lua/tools/install.lua`; do not assume every configured
-server is installed or integration-tested.
+Mason owns language-server selection, installation, and versions. `mason-lspconfig`
+enables installed servers that it maps to `nvim-lspconfig`; project overrides live
+in `nvim/after/lsp/<name>.lua`. Do not add a configured LSP install list or pin
+server versions in the config. Standalone tools and formatters remain pinned in
+`nvim/lua/tools/packages.lua` and are installed on demand by
+`nvim/lua/tools/install.lua`.
 
 The `nvim-lspconfig` plugin remains a source of server definitions, but its
 legacy `require('lspconfig').SERVER.setup(...)` configuration API is deprecated.
 Use Neovim’s native `vim.lsp.config` and `vim.lsp.enable` model. Follow this
-repository’s existing pattern: put server overrides in `nvim/after/lsp/<name>.lua`,
-resolve definitions through `vim.lsp.config`, and enable servers explicitly.
-Do not reintroduce automatic Mason server enablement or legacy setup calls.
+repository’s existing pattern: put server overrides in `nvim/after/lsp/<name>.lua`
+and let Mason enable installed servers. Do not use legacy setup calls.
 
 Formatting is configured by `nvim/lua/plugins/conform-nvim.lua` and is disabled
 on save by default. Preserve formatter alternatives, ordered pipelines, and the

@@ -22,21 +22,6 @@ local function read_lua_module(path)
     return dofile(config_dir .. '/lua/' .. path:gsub('%.', '/') .. '.lua')
 end
 
-local servers = dofile(config_dir .. '/lua/lsp/servers.lua')
-local enabled_names = vim.tbl_map(function(server)
-    return server.name
-end, servers)
-if vim.list_contains(enabled_names, 'basedpyright') then
-    fail('BasedPyright must not be in the configured server list')
-end
-if vim.list_contains(enabled_names, 'tree-sitter-cli') then
-    fail('tree-sitter-cli must not be configured as a language server')
-end
-if not vim.list_contains(enabled_names, 'ty') then
-    fail('ty must be in the explicit server list')
-end
-assert(not vim.list_contains(enabled_names, 'vue_ls'), 'Vue LSP must not be selected')
-
 local ty_config = assert(vim.lsp.config.ty, 'ty did not resolve from native configuration')
 if ty_config.settings.ty.diagnosticMode ~= 'workspace' then
     fail('ty must resolve with workspace diagnostics enabled')
@@ -47,7 +32,8 @@ assert(not vim.list_contains(vtsls_config.filetypes, 'vue'), 'Vue must not selec
 assert(vim.list_contains(vtsls_config.filetypes, 'svelte'), 'Svelte vtsls support must remain')
 
 local mason_config = read_lua_module('plugins.mason-lspconfig-nvim').opts
-assert_equal(mason_config.automatic_enable, false, 'Mason must not enable unspecified servers')
+assert_equal(mason_config.automatic_enable, true, 'Mason-installed servers must be enabled')
+assert(mason_config.ensure_installed == nil, 'Mason must not bulk-install language servers')
 
 local installer_config = read_lua_module('plugins.mason-tool-installer-nvim').opts
 local tools_by_name = {}
@@ -56,9 +42,6 @@ for _, item in ipairs(installer_config.ensure_installed) do
         fail(('Mason package %s is missing an exact version'):format(vim.inspect(item)))
     end
     tools_by_name[item[1]] = item.version
-end
-for _, name in ipairs(enabled_names) do
-    assert(tools_by_name[name] == nil, 'LSP must not be bulk-installed: ' .. name)
 end
 if not tools_by_name['tree-sitter-cli'] then
     fail('tree-sitter-cli must be installed as a pinned standalone tool')
@@ -97,10 +80,11 @@ vim.g.autoformat = false
 local actual_enabled = vim.tbl_map(function(config)
     return config.name
 end, vim.lsp.get_configs({ enabled = true }))
+local installed_servers = require('mason-lspconfig').get_installed_servers()
 table.sort(actual_enabled)
-table.sort(enabled_names)
-assert_equal(actual_enabled, {}, 'startup must not enable servers before opening their filetypes')
-for _, name in ipairs(enabled_names) do
+table.sort(installed_servers)
+assert_equal(actual_enabled, installed_servers, 'only installed Mason servers must be enabled at startup')
+for _, name in ipairs(installed_servers) do
     local config = vim.lsp.config[name]
     assert(config.cmd and config.filetypes, 'missing executable or filetypes for ' .. name)
 end
@@ -116,7 +100,7 @@ vim.api.nvim_exec_autocmds('FileType', { buffer = unrelated })
 vim.wait(100, function()
     return false
 end)
-assert_equal(requests, {}, 'unrelated filetypes must not request LSP installs')
+assert_equal(requests, {}, 'unconfigured filetypes must not request tool installs')
 vim.api.nvim_buf_delete(unrelated, { force = true })
 
 local lockfile = vim.json.decode(table.concat(vim.fn.readfile(config_dir .. '/lazy-lock.json'), '\n'))
@@ -134,17 +118,8 @@ local parser = vim.treesitter.get_parser(norg_buffer, 'norg')
 assert(#parser:parse() > 0, 'locked Norg parser did not load')
 vim.api.nvim_buf_delete(norg_buffer, { force = true })
 
-local mapping = require('mason-lspconfig').get_mappings().lspconfig_to_package
-for _, server in ipairs(servers) do
-    local path = vim.fn.stdpath('data') .. '/mason/packages/' .. mapping[server.name] .. '/mason-receipt.json'
-    if vim.fn.filereadable(path) == 1 then
-        local receipt = vim.json.decode(table.concat(vim.fn.readfile(path), '\n'))
-        assert_equal(receipt.source.id:match('@([^?]+)'), server.version, 'installed server version drift: ' .. server.name)
-    end
-end
 for name, version in pairs(tools_by_name) do
-    local package_name = mapping[name] or name
-    local path = vim.fn.stdpath('data') .. '/mason/packages/' .. package_name .. '/mason-receipt.json'
+    local path = vim.fn.stdpath('data') .. '/mason/packages/' .. name .. '/mason-receipt.json'
     assert(vim.fn.filereadable(path) == 1, 'missing pinned tool ' .. name .. '; run task setup')
     local receipt = vim.json.decode(table.concat(vim.fn.readfile(path), '\n'))
     assert_equal(receipt.source.id:match('@([^?]+)'), version, 'tool version drift: ' .. name)
@@ -152,7 +127,8 @@ end
 
 local mode = vim.env.NVIM_TEST_MODE
 if mode == 'lsp' or mode == 'install' then
-    -- Reset the sandbox's Python tools to exercise real first-use installation.
+    -- This exact version is only a deterministic integration-test fixture.
+    local test_ty_version = '0.0.84'
     local package = registry.get_package('ty')
     for _, name in ipairs(mode == 'install' and { 'ty', 'black', 'ruff' } or {}) do
         local tool = registry.get_package(name)
@@ -196,8 +172,8 @@ if mode == 'lsp' or mode == 'install' then
     vim.bo.filetype = 'python'
     if mode == 'install' then
         wait_until(function()
-            return #install_failures == 3
-        end, 10000, 'registry failure did not report all three Python tool failures')
+            return #install_failures == 2
+        end, 10000, 'registry failure did not report both Python formatter failures')
         assert_equal(requests, {}, 'registry failure must not start package installs')
         registry.refresh = original_refresh
         vim.notify = original_notify
@@ -206,18 +182,35 @@ if mode == 'lsp' or mode == 'install' then
     vim.api.nvim_exec_autocmds('FileType', { buffer = 0 })
 
     wait_until(function()
-        return #vim.lsp.get_clients({ bufnr = 0, name = 'ty' }) == 1
-    end, 120000, 'pinned ty did not install and automatically attach to the Python fixture')
-    wait_until(function()
         return registry.get_package('black'):get_installed_version() == tools_by_name.black
             and registry.get_package('ruff'):get_installed_version() == tools_by_name.ruff
             and not registry.get_package('black'):is_installing()
             and not registry.get_package('ruff'):is_installing()
     end, 120000, 'pinned Python formatters did not install on first use')
     table.sort(requests)
-    assert_equal(requests, mode == 'install' and { 'black', 'ruff', 'ty' } or {}, 'filetype installation requests must be deduplicated')
-    assert_equal(package:get_installed_version(), '0.0.84', 'first-use installation must respect the ty pin')
+    assert_equal(requests, mode == 'install' and { 'black', 'ruff' } or {}, 'filetype installation requests must include formatters only')
     registry.refresh = original_refresh
+
+    if mode == 'install' then
+        local server_install_success, server_install_error
+        package:install(
+            { version = test_ty_version },
+            vim.schedule_wrap(function(success, err)
+                server_install_success, server_install_error = success, err
+            end)
+        )
+        wait_until(function()
+            return server_install_success ~= nil
+        end, 120000, 'manual Mason installation of the Ty test server timed out')
+        assert(server_install_success, 'manual Ty installation failed: ' .. tostring(server_install_error))
+    else
+        assert_equal(package:get_installed_version(), test_ty_version, 'Ty test fixture version drift')
+    end
+    wait_until(function()
+        return vim.lsp.is_enabled('ty') and #vim.lsp.get_clients({ bufnr = 0, name = 'ty' }) == 1
+    end, 120000, 'Mason-installed ty did not enable and attach to the Python fixture')
+    table.sort(requests)
+    assert_equal(requests, mode == 'install' and { 'black', 'ruff', 'ty' } or {}, 'only explicit server installation may request an LSP package')
 
     wait_until(function()
         for _, diagnostic in ipairs(vim.diagnostic.get(0)) do
@@ -229,7 +222,18 @@ if mode == 'lsp' or mode == 'install' then
     end, 30000, 'ty did not report the intentional Python type error')
 
     local client = vim.lsp.get_clients({ bufnr = 0, name = 'ty' })[1]
-    assert_equal(#vim.lsp.get_clients({ bufnr = 0 }), 1, 'only ty should attach to Python')
+    local attached_servers = vim.tbl_map(function(attached_client)
+        return attached_client.name
+    end, vim.lsp.get_clients({ bufnr = 0 }))
+    local expected_servers = {}
+    for _, name in ipairs(require('mason-lspconfig').get_installed_servers()) do
+        if vim.list_contains(vim.lsp.config[name].filetypes or {}, 'python') then
+            expected_servers[#expected_servers + 1] = name
+        end
+    end
+    table.sort(attached_servers)
+    table.sort(expected_servers)
+    assert_equal(attached_servers, expected_servers, 'all installed Python LSPs must attach')
     assert(client:supports_method('textDocument/inlayHint'), 'pinned ty must support inlay hints')
     local mapping = vim.fn.maparg('<leader>uh', 'n', false, true)
     assert(mapping.callback, 'inlay hint mapping missing after real LspAttach')
@@ -238,7 +242,9 @@ if mode == 'lsp' or mode == 'install' then
     assert(vim.lsp.inlay_hint.is_enabled({ bufnr = vim.api.nvim_get_current_buf() }), 'toggle did not enable hints')
     assert(not vim.lsp.inlay_hint.is_enabled({ bufnr = other_buffer }), 'toggle leaked to another buffer')
     mapping.callback()
-    client:stop(true)
+    if mode ~= 'install' then
+        client:stop(true)
+    end
 
     -- Exercise the configured Python formatter pipeline with real Black and Ruff.
     vim.api.nvim_buf_set_lines(0, 0, -1, false, { 'result= {"answer":42}' })
@@ -270,12 +276,29 @@ if mode == 'lsp' or mode == 'install' then
             server_removed = true
         end)
         wait_until(function()
-            return server_removed and not vim.lsp.is_enabled('ty')
+            return server_removed and not vim.lsp.is_enabled('ty') and #vim.lsp.get_clients({ bufnr = 0, name = 'ty' }) == 0
         end, 30000, 'uninstalling ty did not invalidate LSP activation')
         vim.api.nvim_exec_autocmds('FileType', { buffer = 0 })
+        vim.wait(100, function()
+            return false
+        end)
+        assert(not package:is_installed(), 'opening a Python file must not reinstall an uninstalled LSP')
+        assert(not vim.lsp.is_enabled('ty'), 'uninstalled LSP must remain disabled')
+
+        local reinstall_success, reinstall_error
+        package:install(
+            { version = test_ty_version },
+            vim.schedule_wrap(function(success, err)
+                reinstall_success, reinstall_error = success, err
+            end)
+        )
         wait_until(function()
-            return package:get_installed_version() == '0.0.84' and vim.lsp.is_enabled('ty') and #vim.lsp.get_clients({ bufnr = 0, name = 'ty' }) == 1
-        end, 120000, 'reopening Python did not reinstall and reactivate ty')
+            return reinstall_success ~= nil
+        end, 120000, 'manual Mason reinstall of Ty timed out')
+        assert(reinstall_success, 'manual Ty reinstall failed: ' .. tostring(reinstall_error))
+        wait_until(function()
+            return package:get_installed_version() == test_ty_version and vim.lsp.is_enabled('ty') and #vim.lsp.get_clients({ bufnr = 0, name = 'ty' }) == 1
+        end, 120000, 'manually reinstalled Ty did not reactivate')
         vim.lsp.get_clients({ bufnr = 0, name = 'ty' })[1]:stop(true)
     end
     vim.fn.delete(fixture_dir, 'rf')

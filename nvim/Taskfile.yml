@@ -7,7 +7,7 @@ tasks:
       - task: check
 
   setup:
-    desc: Restore pinned plugins and standalone tools (LSPs install on first use)
+    desc: Restore pinned plugins and standalone tools (install LSPs manually in Mason)
     cmds:
       - mise exec -- python3 tests/run.py restore
 
@@ -42,7 +42,7 @@ tasks:
       - mise exec -- python3 tests/run.py lsp
 
   test:install:
-    desc: Verify fresh first-use installation and uninstall/reopen (requires network)
+    desc: Verify formatter first-use and Mason LSP lifecycle (requires network)
     cmds:
       - mise exec -- python3 tests/run.py install
 

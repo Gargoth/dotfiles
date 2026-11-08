@@ -1,7 +1,7 @@
 # Neovim Workflows
 
-These recipes describe the current configuration. Installation, version pins,
-tool reconciliation, and sandbox verification remain authoritative in
+These recipes describe the current configuration. Mason LSP selection, tool
+pins, and sandbox verification remain authoritative in
 [`nvim/README.md`](../README.md).
 
 ## Review a Prepared Git Diff
@@ -59,9 +59,11 @@ LSP mappings appear only after a matching server attaches. Use `K` for hover,
 `Space cr` for rename, and `Space ca` for code actions. `Space sw` searches
 workspace symbols and `Space uh` toggles inlay hints when supported.
 
-If a server is missing, opening the matching filetype triggers installation of
-its pinned version. Formatting tools install similarly. `Space LI` checks LSP
-health, `Space LL` opens the log, and `Space LR` restarts clients.
+If a server is missing, install it with `:Mason` (`Space cm`). Mason enables
+installed servers mapped by `mason-lspconfig`, and the matching filetype then
+attaches. Opening a file never installs an LSP. Formatting tools install on
+first use. `Space LI` checks LSP health, `Space LL` opens the log, and `Space LR`
+restarts clients.
 
 ## Format Deliberately
 

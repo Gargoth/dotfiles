@@ -42,6 +42,28 @@ return {
 
             require('tools.install').setup()
 
+            local registry = require('mason-registry')
+            local package_to_server = require('mason-lspconfig').get_mappings().package_to_lspconfig
+            -- mason-lspconfig caches enabled servers and does not handle uninstall/reinstall.
+            registry:on(
+                'package:install:success',
+                vim.schedule_wrap(function(package)
+                    local server = package_to_server[package.name]
+                    if server then
+                        vim.lsp.enable(server)
+                    end
+                end)
+            )
+            registry:on(
+                'package:uninstall:success',
+                vim.schedule_wrap(function(package)
+                    local server = package_to_server[package.name]
+                    if server then
+                        vim.lsp.enable(server, false)
+                    end
+                end)
+            )
+
             vim.diagnostic.config({ virtual_text = false })
         end,
     },
