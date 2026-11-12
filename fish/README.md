@@ -43,7 +43,7 @@ See [`nvim/docs/keybindings.md`](../nvim/docs/keybindings.md) and
 | `cleangitbranch` | Select local branches and force-delete them. | Can delete unmerged branches; checked-out worktree branches are excluded. |
 | `gri [count]` | Interactive rebase the last count commits, defaulting to one. | Rewrites history and may update related refs. |
 | `git_reorder <count>` | Reorder commits through a temporary branch and interactive rebase. | Requires a clean tree and can leave recovery work on the temporary branch. |
-| `temp <count>` | Create and switch to `temp`, then mixed-reset the last count commits. | Requires a clean tree, a named branch, and no existing `temp`; changes become unstaged and newly added files may become untracked. Accepts zero. |
+| `temp [count]` | Create and switch to `temp`, then mixed-reset the last count commits (default: one). | Requires a clean tree, a named branch, and no existing `temp`; changes become unstaged and newly added files may become untracked. Accepts zero. |
 
 ### Review preparation
 
@@ -57,7 +57,7 @@ prepareprreview      # review against the local remote default branch
 
 Both create `temp`, record the return branch, and perform a mixed reset. The
 original branch is not changed. `prepareprreview` does not fetch, query GitHub,
-or calculate a pull-request merge base. `temp <count>` provides the same workflow
+or calculate a pull-request merge base. `temp [count]` provides the same workflow
 for any non-negative count. Inspect both `git status` and `git diff`: added files
 can become untracked after a mixed reset.
 

@@ -1,9 +1,12 @@
 function temp --description "Create temp and reset the last N commits into the working tree"
-    if test (count $argv) -ne 1
-        echo "Usage: temp <non-negative-commit-count>" >&2
+    if test (count $argv) -gt 1
+        echo "Usage: temp [non-negative-commit-count] (default: 1)" >&2
         return 2
     end
-    set -l count $argv[1]
+    set -l count 1
+    if test (count $argv) -eq 1
+        set count $argv[1]
+    end
     if not string match -rq '^[0-9]+$' -- "$count"
         echo "Commit count must be a non-negative integer." >&2
         return 2
